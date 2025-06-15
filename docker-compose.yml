@@ -1,0 +1,15 @@
+services:
+  spring-cron-db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: jobdb
+      POSTGRES_USER: jobuser
+      POSTGRES_PASSWORD: jobpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - spring-cron-db-data:/var/lib/postgresql/data
+      - ./initdb/:/docker-entrypoint-initdb.d/
+
+volumes:
+  spring-cron-db-data:
