@@ -14,10 +14,7 @@ public class JobBService implements JobTask {
     private static final AtomicInteger jobACount = new AtomicInteger();
 
     @Override
-    public void run(boolean enable) {
-        if (!enable) {
-            return;
-        }
+    public void run() {
         System.out.println("HELLO JOB " + name + "!! [thread=" + Thread.currentThread().getName() + "][count="
                 + jobACount.incrementAndGet() + "]");
     }

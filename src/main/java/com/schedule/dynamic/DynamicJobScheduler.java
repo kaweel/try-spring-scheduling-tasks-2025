@@ -32,13 +32,18 @@ public class DynamicJobScheduler {
     }
 
     public void scheduleAllJobs() {
-        jobConfigRepository.findAll().forEach(this::schedule);
+        jobConfigRepository.findByEnabledTrue().forEach(this::schedule);
     }
 
     public void schedule(JobConfigEntity jobConfigEntity) {
         ScheduledFuture<?> existing = scheduledTasks.get(jobConfigEntity.getName());
         if (existing != null && !existing.isCancelled()) {
             existing.cancel(false);
+        }
+
+        if (!jobConfigEntity.getEnabled()) {
+            scheduledTasks.remove(jobConfigEntity.getName());
+            return;
         }
 
         CronTrigger trigger = new CronTrigger(jobConfigEntity.getExpression());
@@ -49,12 +54,11 @@ public class DynamicJobScheduler {
     private void run(JobConfigEntity jobConfigEntity) {
         jobTasks.stream()
                 .filter(job -> job.getName().equalsIgnoreCase(jobConfigEntity.getName()))
-                .findFirst().ifPresentOrElse(job -> job.run(jobConfigEntity.getEnabled()),
+                .findFirst().ifPresentOrElse(job -> job.run(),
                         () -> System.out.println("[⏸] Skipping " + jobConfigEntity.getName()));
     }
 
     public String reSchedule(ScheduleConfig scheduleConfig) {
-        System.out.println("=== reSchedule ===");
         JobConfigEntity jobConfigEntity = new JobConfigEntity();
         BeanUtils.copyProperties(scheduleConfig, jobConfigEntity);
         jobConfigRepository.save(jobConfigEntity);
